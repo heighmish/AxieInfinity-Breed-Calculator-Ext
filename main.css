@@ -1,0 +1,86 @@
+* {
+    font-family: arial;
+}
+
+.mainContainer {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height:600px;
+    width: 355px;
+    align-items: center;
+    background-color: #121212;
+    color: rgba(255, 255, 255, 0.781);
+    
+}
+
+.pricesDiv {
+    display: flex;
+    height: 20%;
+    width: 80%;
+    font-size: 16px;
+
+}
+.breedCostDiv {
+    display: flex;
+    height:45%;
+    width: 80%;
+    font-size: 16px;
+}
+
+.header {
+    display: flex;
+    background-color: #4140404b; 
+    color: rgba(255, 255, 255, 0.781);
+    font-size: 15px;
+    width: 100%;
+    height: 12.5%;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border-bottom: 3px solid rgb(31, 117, 81);
+}
+
+.topTableClass {
+    display: none;
+    border-collapse: collapse;
+    border-color: #4140400e;
+    border-radius: 5%; 
+    background-color: #4140404b; 
+}
+
+.divBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+}
+
+th, td {
+    padding: 5px;
+} 
+
+.selectClass {
+    color: rgba(255, 255, 255, 0.781);
+    height: 50%;
+    border-collapse: collapse;
+    border-color: #4140400e;
+    border-radius: 10%;  
+    background-color: #4140404b; 
+
+}
+
+.loader {
+    margin: 0 auto;
+    border: 8px solid #f3f3f3; 
+    border-top: 8px solid rgb(31, 117, 81);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 3s linear infinite;
+  }
+  
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
