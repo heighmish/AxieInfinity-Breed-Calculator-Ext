@@ -60,7 +60,7 @@ const createTopTable = () => {
 const createTableRow = (header, data1, data2) => {
     let tr = document.createElement('tr');
     let rowHeader = document.createElement("th");
-    rowHeader.innerHTML = '<img src="'+`/assets/${header}.png`+'" height=20 width=20></img>';
+    rowHeader.innerHTML = '<img src="'+`./assets/${header}.png`+'" height=20 width=20></img>';
     rowHeader.id = header;
     let rowData1 = document.createElement("td");
     rowData1.id = data1;
