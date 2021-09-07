@@ -10,7 +10,7 @@
         "128" : "./assets/8ebb2c0afb163d32f27e6c2343842dfc-32bits-128.png"
     },
     "action" : {
-        "default_popup" : "main.html"
+        "default_popup" : "index.html"
     },
     "permissions" : []
 }
