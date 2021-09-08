@@ -3,7 +3,7 @@
 This repository contains a chrome extension that is useful for information access for Axie Infinity players. The extension fetches fiat and cryptocurrency prices from binance
 and performs some simple calculations that are contextually useful for the game Axie Infinity. 
 
-Chrome store link: https://chrome.google.com/webstore/detail/axie-infinity-breed-cost/kgmmhclhhlkaecmhmfpkcdkamohealeh/related
+Chrome store link: https://chrome.google.com/webstore/detail/axie-infinity-breed-cost/kgmmhclhhlkaecmhmfpkcdkamohealeh/
 
 The extension is writen in vanilla javascript, html and css, and uses manifest 3 for chrome extensions. It uses the javascript websocket api to connect to binance for a constant stream of price information.
 
