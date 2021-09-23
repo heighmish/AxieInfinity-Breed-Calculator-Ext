@@ -9,8 +9,7 @@ const breedSelect = document.getElementById("breedSelect");
 const currSelect = document.getElementById("currSelect");
 
 let pricesMap = new Map();
-let invalidSockets = new Map();
-const slpCosts = [300, 600, 900, 1500, 2400, 3900, 6300];
+const slpCosts = [600, 900, 1500, 2400, 3900, 6300, 10200];
 let individualCosts = [0,0,0,0,0,0,0];
 let TotalCosts = [0,0,0,0,0,0,0];
 
@@ -84,6 +83,8 @@ const createTopSelect = () => {
     select.appendChild(createSelectOption("aud"));
     select.appendChild(createSelectOption("eur"));
     select.appendChild(createSelectOption("gbp"));
+    select.appendChild(createSelectOption("usdt"));
+
 
 
     select.onchange = () => {
@@ -178,7 +179,7 @@ const updateBottomTable = () => {
 }
 
 const calculateBreedCosts = () => {
-    const flatAXS = pricesMap.get(`axs${breedCurr}`) * 2;
+    const flatAXS = pricesMap.get(`axs${breedCurr}`) * 1;
     const slpPrice = pricesMap.get(`slp${breedCurr}`);
     for (let i = 0; i<7; ++i) {
         individualCosts[i] = (slpCosts[i]*slpPrice + flatAXS);
