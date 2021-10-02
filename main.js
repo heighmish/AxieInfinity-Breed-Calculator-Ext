@@ -1,12 +1,16 @@
 let crypto = "eth";
 let fiat1 = "usdt";
+
 let fiat2 = "aud";
 let breedCurr = crypto;
+
+
 const currencies = ["slp", "axs"];
 const topId = document.getElementById("pricesDiv");
 const bottomId = document.getElementById("breedCostsDiv");
 const breedSelect = document.getElementById("breedSelect");
 const currSelect = document.getElementById("currSelect");
+
 
 let pricesMap = new Map();
 const slpCosts = [600, 900, 1500, 2400, 3900, 6300, 10200];
@@ -34,13 +38,13 @@ const fetchPrice = (curr1, curr2) => {
     }
 }
 
-const fetchPrices = async () => {
+const fetchPrices = (crypto_, fiat1_, fiat2_) => {
     currencies.forEach(currency => {
-        fetchPrice(currency, crypto);
-        fetchPrice(currency, fiat1);
+        fetchPrice(currency, crypto_);
+        fetchPrice(currency, fiat1_);
     });
-    fetchPrice(crypto, fiat1);
-    fetchPrice(crypto, fiat2);
+    fetchPrice(crypto_, fiat1_);
+    fetchPrice(crypto_, fiat2_);
 }
 
 const createTopTable = () => {
@@ -90,7 +94,8 @@ const createTopSelect = () => {
     select.onchange = () => {
         fiat2 = document.getElementById("topSelect").value;
         chrome.storage.sync.set({"fiat2":fiat2});
-        fetchPrices();
+        chrome.storage.sync.set({"topSelect":select.selectedIndex});
+        fetchPrice(crypto, fiat2);
     }
     select.className = "selectClass";
     return select;
@@ -150,9 +155,12 @@ const createBottomSelect = () => {
     select.onchange = () => {
         breedCurr = document.getElementById("bottomSelect").value;
         chrome.storage.sync.set({"breedCurr": breedCurr});
+        chrome.storage.sync.set({"botSelect": select.selectedIndex});
+        console.log(select.selectedIndex);
         
     }
     select.className = "selectClass";
+    
     return select;
 }
 
@@ -184,6 +192,7 @@ const updateBottomTable = () => {
 const calculateBreedCosts = () => {
     const flatAXS = pricesMap.get(`axs${breedCurr}`) * 1;
     const slpPrice = pricesMap.get(`slp${breedCurr}`);
+    //console.log(flatAXS, slpPrice);
     for (let i = 0; i<7; ++i) {
         individualCosts[i] = (slpCosts[i]*slpPrice + flatAXS);
         if (i == 0) {
@@ -203,23 +212,29 @@ const showPage  = () => {
 }
 
 const fetchStoredData = () => {
-    //let crypto = "eth";
-    //let fiat1 = "usdt";
     chrome.storage.sync.get(['breedCurr'], (result) => {
-        breedCurr = result.key;
+        breedCurr = result.breedCurr;
+        //console.log(result.breedCurr, typeof(result.breedCurr));
     })
     chrome.storage.sync.get(['fiat2'], (result) => {
-        breedCurr = result.key;
+        fiat2 = result.fiat2;
+        fetchPrice(crypto, fiat2);
+    })
+    
+    chrome.storage.sync.get(['botSelect'], (result) => {
+        document.getElementById("bottomSelect").selectedIndex = result.botSelect;     
+    })
+    
+    chrome.storage.sync.get(['topSelect'], (result) => {
+        document.getElementById("topSelect").selectedIndex = result.topSelect;   
     })
 }
 
-
-
 window.onload = () => {
     fetchStoredData();
+    //console.log(breedCurr, fiat2);
     createTopTable();
-    fetchPrices();
+    fetchPrices(crypto, fiat1, fiat2);
     createBottomTable();
     setTimeout(showPage, 3300);
-    
 }
