@@ -219,10 +219,15 @@ const showPage  = () => {
 const fetchStoredData = () => {
     chrome.storage.sync.get(['breedCurr'], (result) => {
         breedCurr = result.breedCurr;
-        //console.log(result.breedCurr, typeof(result.breedCurr));
+        if (breedCurr === undefined) {
+            breedCurr = crypto;
+        }
     })
     chrome.storage.sync.get(['fiat2'], (result) => {
         fiat2 = result.fiat2;
+        if (fiat2 === undefined) {
+            fiat2 = "aus";
+        }
         fetchPrice(crypto, fiat2);
     })
     
