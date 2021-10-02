@@ -89,6 +89,7 @@ const createTopSelect = () => {
 
     select.onchange = () => {
         fiat2 = document.getElementById("topSelect").value;
+        chrome.storage.sync.set({"fiat2":fiat2});
         fetchPrices();
     }
     select.className = "selectClass";
@@ -148,6 +149,8 @@ const createBottomSelect = () => {
     select.appendChild(curr1);
     select.onchange = () => {
         breedCurr = document.getElementById("bottomSelect").value;
+        chrome.storage.sync.set({"breedCurr": breedCurr});
+        
     }
     select.className = "selectClass";
     return select;
@@ -199,9 +202,21 @@ const showPage  = () => {
     document.getElementById("bottomTable").style.display = "block";
 }
 
+const fetchStoredData = () => {
+    //let crypto = "eth";
+    //let fiat1 = "usdt";
+    chrome.storage.sync.get(['breedCurr'], (result) => {
+        breedCurr = result.key;
+    })
+    chrome.storage.sync.get(['fiat2'], (result) => {
+        breedCurr = result.key;
+    })
+}
+
 
 
 window.onload = () => {
+    fetchStoredData();
     createTopTable();
     fetchPrices();
     createBottomTable();
