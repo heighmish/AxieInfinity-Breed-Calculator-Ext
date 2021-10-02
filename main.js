@@ -226,7 +226,7 @@ const fetchStoredData = () => {
     chrome.storage.sync.get(['fiat2'], (result) => {
         fiat2 = result.fiat2;
         if (fiat2 === undefined) {
-            fiat2 = "aus";
+            fiat2 = "aud";
         }
         fetchPrice(crypto, fiat2);
     })
