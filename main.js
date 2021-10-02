@@ -85,8 +85,13 @@ const createTopSelect = () => {
         return opt;
     }
     select.appendChild(createSelectOption("aud"));
+    select.appendChild(createSelectOption("bidr"));
+    select.appendChild(createSelectOption("brl"));
     select.appendChild(createSelectOption("eur"));
     select.appendChild(createSelectOption("gbp"));
+    select.appendChild(createSelectOption("rub"));
+    select.appendChild(createSelectOption("try"));
+    select.appendChild(createSelectOption("uah"));
     select.appendChild(createSelectOption("usdt"));
 
 
