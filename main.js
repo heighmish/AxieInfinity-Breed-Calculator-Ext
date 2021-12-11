@@ -13,7 +13,7 @@ const currSelect = document.getElementById("currSelect");
 
 
 let pricesMap = new Map();
-const slpCosts = [600, 900, 1500, 2400, 3900, 6300, 10200];
+const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600];
 let individualCosts = [0,0,0,0,0,0,0];
 let TotalCosts = [0,0,0,0,0,0,0];
 
@@ -127,7 +127,7 @@ const createBottomTable = () => {
     tr1.innerHTML = "Count";
     tr.appendChild(tr1);
     let tr2 = document.createElement("th");
-    tr2.innerHTML = "Individual";
+    tr2.innerHTML = "Indiv";
     tr.appendChild(tr2);
     let tr3 = document.createElement("th");
     tr3.innerHTML = "Total";
@@ -195,7 +195,7 @@ const updateBottomTable = () => {
 }
 
 const calculateBreedCosts = () => {
-    const flatAXS = pricesMap.get(`axs${breedCurr}`) * 1;
+    const flatAXS = pricesMap.get(`axs${breedCurr}`) * 0.5;
     const slpPrice = pricesMap.get(`slp${breedCurr}`);
     //console.log(flatAXS, slpPrice);
     for (let i = 0; i<7; ++i) {
