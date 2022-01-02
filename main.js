@@ -1,27 +1,32 @@
+// Establish default variables
 let crypto = "eth";
 let fiat1 = "usdt";
 
 let fiat2 = "aud";
 let breedCurr = crypto;
 
-
+// Grab element ids and set more default values
 const currencies = ["slp", "axs"];
 const topId = document.getElementById("pricesDiv");
 const bottomId = document.getElementById("breedCostsDiv");
 const breedSelect = document.getElementById("breedSelect");
 const currSelect = document.getElementById("currSelect");
+const axsBreedCost = 0.5
 
 
-let pricesMap = new Map();
+let pricesMap = new Map(); // stores all the currency information
 const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600];
+const supportedCurrencies = ["aud", "bidr", "brl", 'eur',"gbp","rub","try", "uah","usdt"]
 let individualCosts = [0,0,0,0,0,0,0];
-let TotalCosts = [0,0,0,0,0,0,0];
+let totalCosts = [0,0,0,0,0,0,0];
 
 const fetchPrice = (curr1, curr2) => {
+    // Opens a new websocket to binance and updates the price map and then rerenders the new information
     let socket = new WebSocket(`wss://stream.binance.com:9443/ws/${curr1}${curr2}@ticker`);
     socket.onopen = () => {
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            // Change how many decimals are displayed based on price
             let price = parseFloat(data.c);
             if (price > 1) {
                 price = price.toFixed(2);
@@ -39,6 +44,7 @@ const fetchPrice = (curr1, curr2) => {
 }
 
 const fetchPrices = (crypto_, fiat1_, fiat2_) => {
+    // Opens multiple websockets for all the currencies the user has selected
     currencies.forEach(currency => {
         fetchPrice(currency, crypto_);
         fetchPrice(currency, fiat1_);
@@ -84,15 +90,11 @@ const createTopSelect = () => {
         opt.innerHTML = currency;
         return opt;
     }
-    select.appendChild(createSelectOption("aud"));
-    select.appendChild(createSelectOption("bidr"));
-    select.appendChild(createSelectOption("brl"));
-    select.appendChild(createSelectOption("eur"));
-    select.appendChild(createSelectOption("gbp"));
-    select.appendChild(createSelectOption("rub"));
-    select.appendChild(createSelectOption("try"));
-    select.appendChild(createSelectOption("uah"));
-    select.appendChild(createSelectOption("usdt"));
+    // These are all currencies currently supported by the binance API
+    
+    supportedCurrencies.forEach(curr => {
+        select.appendChild(createSelectOption(curr))
+    })
 
 
 
@@ -107,6 +109,7 @@ const createTopSelect = () => {
 }
 
 const updateTopTable = (pricesMap) => {
+    // render the price information to screen
     document.getElementById("slp1").innerHTML = `${pricesMap.get(`slp${crypto}`)} (${crypto})`;
     document.getElementById("slp2").innerHTML = `${pricesMap.get(`slp${fiat1}`)} (${fiat1})`;
     pricesMap.set(`axs${crypto}`, (pricesMap.get(`axs${fiat1}`) / pricesMap.get(`${crypto}${fiat1}`)).toFixed(4));
@@ -189,34 +192,42 @@ const createBottomTableRow = (number) => {
 const updateBottomTable = () => {
     for (let i = 1; i<=7; ++i) {
         document.getElementById(`indiv${i}`).innerHTML = individualCosts[i-1].toFixed(4);
-        document.getElementById(`cumul${i}`).innerHTML = TotalCosts[i-1].toFixed(4);
-        document.getElementById(`aver${i}`).innerHTML = (TotalCosts[i-1]/i).toFixed(4);
+        document.getElementById(`cumul${i}`).innerHTML = totalCosts[i-1].toFixed(4);
+        document.getElementById(`aver${i}`).innerHTML = (totalCosts[i-1]/i).toFixed(4);
     }
 }
 
 const calculateBreedCosts = () => {
-    const flatAXS = pricesMap.get(`axs${breedCurr}`) * 0.5;
+    const flatAXS = pricesMap.get(`axs${breedCurr}`) * axsBreedCost;
     const slpPrice = pricesMap.get(`slp${breedCurr}`);
     //console.log(flatAXS, slpPrice);
     for (let i = 0; i<7; ++i) {
         individualCosts[i] = (slpCosts[i]*slpPrice + flatAXS);
         if (i == 0) {
-            TotalCosts[i] = individualCosts[i];
+            totalCosts[i] = individualCosts[i];
         } else {
-            TotalCosts[i] = individualCosts[i] + TotalCosts[i-1];
+            totalCosts[i] = individualCosts[i] + totalCosts[i-1];
         }
     }
 }
 
 
-const showPage  = () => {
-    document.getElementById("loader1").style.display = "none";
-    document.getElementById("loader2").style.display = "none";
-    document.getElementById("topTable").style.display = "block";
-    document.getElementById("bottomTable").style.display = "block";
-}
-
 const fetchStoredData = () => {
+    chrome.storage.sync.get(['lastUsed'], (result) => {
+        const oldTime = result.lastUsed;
+        if (Date.now() - oldTime < 1800000) { //less than hour an hour since last used data likely still valid
+            chrome.storage.sync.get(['data'], (storedData) => {
+                if (storedData.data.prices_ != undefined) {
+                    pricesMap = new Map(Object.entries(storedData.data.prices_));
+                    individualCosts = storedData.data.individualCosts_;
+                    totalCosts = storedData.data.totalCosts_;
+                    calculateBreedCosts();
+                    updateTopTable(pricesMap);
+                    updateBottomTable();
+                }
+            })
+        }
+    })
     chrome.storage.sync.get(['breedCurr'], (result) => {
         breedCurr = result.breedCurr;
         if (breedCurr === undefined) {
@@ -240,11 +251,44 @@ const fetchStoredData = () => {
     })
 }
 
+const showPage  = () => {
+    document.getElementById("loader1").style.display = "none";
+    document.getElementById("loader2").style.display = "none";
+    document.getElementById("topTable").style.display = "block";
+    document.getElementById("bottomTable").style.display = "block";
+    setInterval(saveData, 10000); // save data every 10 seconds
+}
+
+const saveData = () => {
+    let data = {
+        prices_: Object.fromEntries(pricesMap),
+        individualCosts_: individualCosts,
+        totalCosts_: totalCosts,
+    };
+    let lastUsed = Date.now()
+    chrome.storage.sync.set({"data": data})
+    chrome.storage.sync.set({"lastUsed" : lastUsed})
+    console.log("Data saved")
+    console.log(pricesMap)
+    console.log(data.prices_)
+}
+
+const waitForData = () => {
+    let interval = setInterval(function() {
+        console.log(pricesMap.size)
+        if (pricesMap.size >= 6) {
+            clearInterval(interval);
+            showPage();
+        }
+    }, 100);
+}
+   
+
 window.onload = () => {
     fetchStoredData();
-    //console.log(breedCurr, fiat2);
     createTopTable();
     fetchPrices(crypto, fiat1, fiat2);
     createBottomTable();
-    setTimeout(showPage, 3300);
+    waitForData()
+    
 }
