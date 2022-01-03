@@ -19,6 +19,7 @@ const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600];
 const supportedCurrencies = ["aud", "bidr", "brl", 'eur',"gbp","rub","try", "uah","usdt"]
 let individualCosts = [0,0,0,0,0,0,0];
 let totalCosts = [0,0,0,0,0,0,0];
+let selectedElements = new Set();
 
 const fetchPrice = (curr1, curr2) => {
     // Opens a new websocket to binance and updates the price map and then rerenders the new information
@@ -145,6 +146,7 @@ const createBottomTable = () => {
     }
     table.appendChild(tbody);
     bottomId.append(table);
+    createClickListener();
     breedSelect.appendChild(createBottomSelect());
 }
 
@@ -178,15 +180,24 @@ const createBottomTableRow = (number) => {
     tr.appendChild(rowHeader);
     let individual = document.createElement("td");
     individual.id = `indiv${number}`;
+    individual.className = "interactiveCell";
     tr.appendChild(individual);
     let Total = document.createElement("td");
     Total.id = `cumul${number}`;
+    Total.className = "interactiveCell";
     tr.appendChild(Total);
     let average = document.createElement("td");
     average.id = `aver${number}`;
     tr.appendChild(average);
     return tr;
 }
+const createClickListener = () => {
+    const tdElements = document.getElementsByClassName("interactiveCell");
+    for (i = 0; i < tdElements.length; i++) {
+        tdElements[i].addEventListener("click", tableHandler)
+    }
+}
+
 
 const updateBottomTable = () => {
     let decimalPlaces = 4
@@ -281,6 +292,28 @@ const waitForData = () => {
             showPage();
         }
     }, 100);
+}
+
+
+const tableHandler = (event) => {
+    console.log(event.target);
+    const selectElement = (id) => {
+        selectedElements.add(id);
+        document.getElementById(id).className = "interactiveCellPressed";
+        
+    }
+    const deselectElement = (id) => {
+        console.log("deselect", id)
+        selectedElements.delete(id);
+        document.getElementById(id).className = "interactiveCell";
+    }
+
+    if (selectedElements.has(event.target.id)) {
+        deselectElement(event.target.id);
+    }
+    else {
+        selectElement(event.target.id);
+    }
 }
    
 

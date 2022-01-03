@@ -1,5 +1,6 @@
 * {
     font-family: arial;
+    cursor: default;
 }
 
 .mainContainer {
@@ -58,6 +59,7 @@
 
 th, td {
     padding: 5px;
+    border-radius: 5px;
 } 
 
 .selectClass {
@@ -83,4 +85,12 @@ th, td {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.interactiveCell:hover {
+    background-color: #5c4d4d; 
+}
+
+.interactiveCellPressed {
+    background-color: red; 
 }
