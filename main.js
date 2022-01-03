@@ -90,8 +90,7 @@ const createTopSelect = () => {
         opt.innerHTML = currency;
         return opt;
     }
-    // These are all currencies currently supported by the binance API
-    
+    // Add supported currencies
     supportedCurrencies.forEach(curr => {
         select.appendChild(createSelectOption(curr))
     })
@@ -190,10 +189,14 @@ const createBottomTableRow = (number) => {
 }
 
 const updateBottomTable = () => {
+    let decimalPlaces = 4
+    if (individualCosts[0] > 1) { // Larger currencies require less decimals than ethereum
+        decimalPlaces = 1
+    }
     for (let i = 1; i<=7; ++i) {
-        document.getElementById(`indiv${i}`).innerHTML = individualCosts[i-1].toFixed(4);
-        document.getElementById(`cumul${i}`).innerHTML = totalCosts[i-1].toFixed(4);
-        document.getElementById(`aver${i}`).innerHTML = (totalCosts[i-1]/i).toFixed(4);
+        document.getElementById(`indiv${i}`).innerHTML = individualCosts[i-1].toFixed(decimalPlaces);
+        document.getElementById(`cumul${i}`).innerHTML = totalCosts[i-1].toFixed(decimalPlaces);
+        document.getElementById(`aver${i}`).innerHTML = (totalCosts[i-1]/i).toFixed(decimalPlaces);
     }
 }
 
@@ -256,7 +259,7 @@ const showPage  = () => {
     document.getElementById("loader2").style.display = "none";
     document.getElementById("topTable").style.display = "block";
     document.getElementById("bottomTable").style.display = "block";
-    setInterval(saveData, 10000); // save data every 10 seconds
+    setInterval(saveData, 5000); // save data every 5 seconds
 }
 
 const saveData = () => {
@@ -268,14 +271,11 @@ const saveData = () => {
     let lastUsed = Date.now()
     chrome.storage.sync.set({"data": data})
     chrome.storage.sync.set({"lastUsed" : lastUsed})
-    console.log("Data saved")
-    console.log(pricesMap)
-    console.log(data.prices_)
 }
 
 const waitForData = () => {
     let interval = setInterval(function() {
-        console.log(pricesMap.size)
+        // while the prices havent loaded yet maintain the load screens
         if (pricesMap.size >= 6) {
             clearInterval(interval);
             showPage();
