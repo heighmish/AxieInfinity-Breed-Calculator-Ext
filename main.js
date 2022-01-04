@@ -11,6 +11,7 @@ const topId = document.getElementById("pricesDiv");
 const bottomId = document.getElementById("breedCostsDiv");
 const breedSelect = document.getElementById("breedSelect");
 const currSelect = document.getElementById("currSelect");
+const selectedCostsDiv = document.getElementById("selectedCostsDiv");
 const axsBreedCost = 0.5
 
 
@@ -20,6 +21,7 @@ const supportedCurrencies = ["aud", "bidr", "brl", 'eur',"gbp","rub","try", "uah
 let individualCosts = [0,0,0,0,0,0,0];
 let totalCosts = [0,0,0,0,0,0,0];
 let selectedElements = new Set();
+let totalSelected = false;
 
 const fetchPrice = (curr1, curr2) => {
     // Opens a new websocket to binance and updates the price map and then rerenders the new information
@@ -201,7 +203,7 @@ const createClickListener = () => {
 
 const updateBottomTable = () => {
     let decimalPlaces = 4
-    if (individualCosts[0] > 1) { // Larger currencies require less decimals than ethereum
+    if (individualCosts[0] > 1) { // Larger currencies require less decimals than others
         decimalPlaces = 1
     }
     for (let i = 1; i<=7; ++i) {
@@ -296,24 +298,54 @@ const waitForData = () => {
 
 
 const tableHandler = (event) => {
-    console.log(event.target);
+
+    const clearSet = () => {
+        selectedElements.forEach(element => {
+            deselectElement(element);
+        })
+    }
     const selectElement = (id) => {
+        if (id.includes("cumul")) {
+            totalSelected = true;
+            clearSet();
+        } else {
+            if (totalSelected) {
+                clearSet();
+                totalSelected = false;
+            }
+        }
         selectedElements.add(id);
         document.getElementById(id).className = "interactiveCellPressed";
-        
     }
     const deselectElement = (id) => {
-        console.log("deselect", id)
+        console.log("deselect", id);
         selectedElements.delete(id);
         document.getElementById(id).className = "interactiveCell";
     }
 
-    if (selectedElements.has(event.target.id)) {
-        deselectElement(event.target.id);
+    selectedElements.has(event.target.id) ? deselectElement(event.target.id) : selectElement(event.target.id);
+    displayCosts();
+}
+
+const displayCosts = () => {
+    console.log(selectedElements)
+    let axsDisplay = 0, slpDisplay = 0;
+    if (totalSelected && selectedElements.size) { 
+        let [val] = selectedElements;
+        val = parseInt(val.substr(-1,1));
+        axsDisplay = val / 2;
+        for (i = 0; i < val; i++) {
+            slpDisplay += slpCosts[i];
+        }
     }
     else {
-        selectElement(event.target.id);
+        selectedElements.forEach(element => {
+            const val = parseInt(element.substr(-1,1));
+            axsDisplay += 0.5;
+            slpDisplay += slpCosts[val-1];
+        })
     }
+    console.log(axsDisplay, slpDisplay);
 }
    
 
