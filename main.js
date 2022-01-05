@@ -166,12 +166,9 @@ const createBottomSelect = () => {
     select.onchange = () => {
         breedCurr = document.getElementById("bottomSelect").value;
         chrome.storage.sync.set({"breedCurr": breedCurr});
-        chrome.storage.sync.set({"botSelect": select.selectedIndex});
-        console.log(select.selectedIndex);
-        
+        chrome.storage.sync.set({"botSelect": select.selectedIndex});        
     }
     select.className = "selectClass";
-    
     return select;
 }
 
