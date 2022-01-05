@@ -92,15 +92,38 @@ th, td {
 }
 
 .interactiveCellPressed {
-    background-color: red; 
+    transform: scale(1.025);
+    background-color: #837979c9; 
 }
 .selectedCostsDiv {
-    display: flex;
-    margin-top: 5%;
+    display: none;
+    margin-top: 3%;
     margin-right: 10%;
     height:10%;
     width: 70%;
     border-color: #4140400e;
     border-radius: 5px;
     background-color: #4140404b; 
+}
+
+.leftColumn {
+    display: none;
+    width: 45%;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 20px;
+}
+
+.rightColumn {
+    display: none;
+    width: 50%;
+    margin-left: 5%;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 20px;
+}
+
+.costsText {
+    font-size: 18px;
+    margin: 5px;
 }

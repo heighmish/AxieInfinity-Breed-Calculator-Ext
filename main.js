@@ -1,7 +1,6 @@
 // Establish default variables
 let crypto = "eth";
 let fiat1 = "usdt";
-
 let fiat2 = "aud";
 let breedCurr = crypto;
 
@@ -16,12 +15,12 @@ const axsBreedCost = 0.5
 
 
 let pricesMap = new Map(); // stores all the currency information
-const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600];
-const supportedCurrencies = ["aud", "bidr", "brl", 'eur',"gbp","rub","try", "uah","usdt"]
-let individualCosts = [0,0,0,0,0,0,0];
-let totalCosts = [0,0,0,0,0,0,0];
-let selectedElements = new Set();
-let totalSelected = false;
+const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600]; // values determined by Sky Mavis
+const supportedCurrencies = ["aud", "bidr", "brl", 'eur',"gbp","rub","try", "uah","usdt"] // currencies supporting eth, slp and axs conversions
+let individualCosts = [0,0,0,0,0,0,0]; // store the individual index+1 breed cost
+let totalCosts = [0,0,0,0,0,0,0]; // store total/cumulative breed costs
+let selectedElements = new Set(); // set of table cells that have been selected by the user
+let totalSelected = false; // boolean stores if a total column cell has been selected
 
 const fetchPrice = (curr1, curr2) => {
     // Opens a new websocket to binance and updates the price map and then rerenders the new information
@@ -57,6 +56,7 @@ const fetchPrices = (crypto_, fiat1_, fiat2_) => {
 }
 
 const createTopTable = () => {
+    // Function creates the cypto prices table by building up rows and cells
     let table = document.createElement("table");
     table.className = "topTableClass";
     table.id = "topTable";
@@ -98,9 +98,8 @@ const createTopSelect = () => {
         select.appendChild(createSelectOption(curr))
     })
 
-
-
     select.onchange = () => {
+        // On change of select, re-render the new chosen value then save the users choice to chrome storage then open new websocket to the new currency
         fiat2 = document.getElementById("topSelect").value;
         chrome.storage.sync.set({"fiat2":fiat2});
         chrome.storage.sync.set({"topSelect":select.selectedIndex});
@@ -111,7 +110,7 @@ const createTopSelect = () => {
 }
 
 const updateTopTable = (pricesMap) => {
-    // render the price information to screen
+    // render the price information to screen from the priceMap
     document.getElementById("slp1").innerHTML = `${pricesMap.get(`slp${crypto}`)} (${crypto})`;
     document.getElementById("slp2").innerHTML = `${pricesMap.get(`slp${fiat1}`)} (${fiat1})`;
     pricesMap.set(`axs${crypto}`, (pricesMap.get(`axs${fiat1}`) / pricesMap.get(`${crypto}${fiat1}`)).toFixed(4));
@@ -132,7 +131,7 @@ const createBottomTable = () => {
     tr1.innerHTML = "Count";
     tr.appendChild(tr1);
     let tr2 = document.createElement("th");
-    tr2.innerHTML = "Indiv";
+    tr2.innerHTML = "Individ";
     tr.appendChild(tr2);
     let tr3 = document.createElement("th");
     tr3.innerHTML = "Total";
@@ -194,6 +193,7 @@ const createBottomTableRow = (number) => {
     return tr;
 }
 const createClickListener = () => {
+    // add event listener to the relevant td elements in the bottom breed costs table, cells under indiv and total
     const tdElements = document.getElementsByClassName("interactiveCell");
     for (i = 0; i < tdElements.length; i++) {
         tdElements[i].addEventListener("click", tableHandler)
@@ -202,21 +202,21 @@ const createClickListener = () => {
 
 
 const updateBottomTable = () => {
-    let decimalPlaces = 4
-    if (individualCosts[0] > 1) { // Larger currencies require less decimals than others
-        decimalPlaces = 1
-    }
+    // Renders new information in the bottom breed costs table
+    let decimalPlaces;
+    individualCosts[0] > 1 ? decimalPlaces = 1: decimalPlaces = 4;
     for (let i = 1; i<=7; ++i) {
         document.getElementById(`indiv${i}`).innerHTML = individualCosts[i-1].toFixed(decimalPlaces);
         document.getElementById(`cumul${i}`).innerHTML = totalCosts[i-1].toFixed(decimalPlaces);
-        document.getElementById(`aver${i}`).innerHTML = (totalCosts[i-1]/i).toFixed(decimalPlaces);
+        document.getElementById(`aver${i}`).innerHTML = (totalCosts[i-1]/i).toFixed(decimalPlaces); // 
     }
 }
 
 const calculateBreedCosts = () => {
+    // calculate the individual and total breed costs in the currently selected currency, either eth or usdt currently
+    // average costs are calculated when rendering the new information by dividing total cost by the current breed count
     const flatAXS = pricesMap.get(`axs${breedCurr}`) * axsBreedCost;
     const slpPrice = pricesMap.get(`slp${breedCurr}`);
-    //console.log(flatAXS, slpPrice);
     for (let i = 0; i<7; ++i) {
         individualCosts[i] = (slpCosts[i]*slpPrice + flatAXS);
         if (i == 0) {
@@ -229,9 +229,11 @@ const calculateBreedCosts = () => {
 
 
 const fetchStoredData = () => {
+    // function called before extension fully loads, fetches all data saved in chrome storage and updates the default variable values to stored ones
     chrome.storage.sync.get(['lastUsed'], (result) => {
+        // Fetch timestamp of when data was last saved, if less than half an hour since last used fetch the price information and update values
         const oldTime = result.lastUsed;
-        if (Date.now() - oldTime < 1800000) { //less than hour an hour since last used data likely still valid
+        if (Date.now() - oldTime < 1800000) { //less than half an hour since last used data likely still valid if not, live data is updated within approximately 3 seconds
             chrome.storage.sync.get(['data'], (storedData) => {
                 if (storedData.data.prices_ != undefined) {
                     pricesMap = new Map(Object.entries(storedData.data.prices_));
@@ -272,10 +274,13 @@ const showPage  = () => {
     document.getElementById("loader2").style.display = "none";
     document.getElementById("topTable").style.display = "block";
     document.getElementById("bottomTable").style.display = "block";
+    document.getElementById("selectedCostsDiv").style.display = "flex";
     setInterval(saveData, 5000); // save data every 5 seconds
 }
 
 const saveData = () => {
+    // save priceMap, individual and totalCosts arrays to chrome storage. 
+    // each array stores 7 doubles and map stores 6 or more (string, double) pairs
     let data = {
         prices_: Object.fromEntries(pricesMap),
         individualCosts_: individualCosts,
@@ -287,6 +292,8 @@ const saveData = () => {
 }
 
 const waitForData = () => {
+    // function waits until all the websockets are online and have messaged at least once before removing the loading spinner
+    // checks every 100 milliseconds
     let interval = setInterval(function() {
         // while the prices havent loaded yet maintain the load screens
         if (pricesMap.size >= 6) {
@@ -298,42 +305,62 @@ const waitForData = () => {
 
 
 const tableHandler = (event) => {
-
+    // handle the onlick events of the clickable td elements in the breed cost table
+    // there are three main states for clickable table elements, no cells active, multiple individual cells active or only one total cell can be active at any time
     const clearSet = () => {
+        // deactivate all elements
         selectedElements.forEach(element => {
             deselectElement(element);
         })
     }
     const selectElement = (id) => {
-        if (id.includes("cumul")) {
-            totalSelected = true;
-            clearSet();
-        } else {
-            if (totalSelected) {
+        if (id.includes("cumul")) { // check current element is a total/cumulative 
+            totalSelected = true; 
+            clearSet(); // regardless of the state of currently active elements, decactivate all elements
+        } else { // current element is individual
+            if (totalSelected) { // if a total/cumulative was already selected need to deactivate it
                 clearSet();
                 totalSelected = false;
             }
         }
-        selectedElements.add(id);
-        document.getElementById(id).className = "interactiveCellPressed";
+        selectedElements.add(id); // add newly pressed cell to set
+        document.getElementById(id).className = "interactiveCellPressed"; // change css class to better visualisation of active cell
     }
     const deselectElement = (id) => {
-        console.log("deselect", id);
+        // delect cell from tracked list and change css class
         selectedElements.delete(id);
         document.getElementById(id).className = "interactiveCell";
     }
 
-    selectedElements.has(event.target.id) ? deselectElement(event.target.id) : selectElement(event.target.id);
+    selectedElements.has(event.target.id) ? deselectElement(event.target.id) : selectElement(event.target.id); //check whether cell is already active, if it is deactivate else activate
     displayCosts();
 }
 
 const displayCosts = () => {
-    console.log(selectedElements)
+    const leftCol = document.getElementById("leftColumn");
+    const rightCol = document.getElementById("rightColumn");
+    const costsText= document.getElementById("costsText");
+
+    const Default = () => {
+        // default display when no cells are selected
+        costsText.style.display = "flex";
+        leftCol.style.display = "None";
+        rightCol.style.display = "None";
+    }
+
+    const Costs = () => {
+        // display costs when cells are selected
+        costsText.style.display = "none";
+        leftCol.style.display = "flex";
+        leftCol.innerText = `${axsDisplay} Axs`;
+        rightCol.style.display = "flex";
+        rightCol.innerText = `${slpDisplay} Slp`;
+    }
     let axsDisplay = 0, slpDisplay = 0;
-    if (totalSelected && selectedElements.size) { 
-        let [val] = selectedElements;
-        val = parseInt(val.substr(-1,1));
-        axsDisplay = val / 2;
+    if (totalSelected && selectedElements.size) { // if true calculate total/cumulative costs
+        let [val] = selectedElements; // only one element in the set, destructure to get the element
+        val = parseInt(val.substr(-1,1)); // last character corresponds to the integer breed count
+        axsDisplay = val * axsBreedCost;
         for (i = 0; i < val; i++) {
             slpDisplay += slpCosts[i];
         }
@@ -341,11 +368,11 @@ const displayCosts = () => {
     else {
         selectedElements.forEach(element => {
             const val = parseInt(element.substr(-1,1));
-            axsDisplay += 0.5;
+            axsDisplay += axsBreedCost;
             slpDisplay += slpCosts[val-1];
         })
     }
-    console.log(axsDisplay, slpDisplay);
+    axsDisplay && slpDisplay ? Costs() : Default();
 }
    
 
@@ -355,5 +382,4 @@ window.onload = () => {
     fetchPrices(crypto, fiat1, fiat2);
     createBottomTable();
     waitForData()
-    
 }
