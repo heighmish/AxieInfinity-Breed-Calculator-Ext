@@ -11,11 +11,12 @@ const bottomId = document.getElementById("breedCostsDiv");
 const breedSelect = document.getElementById("breedSelect");
 const currSelect = document.getElementById("currSelect");
 const selectedCostsDiv = document.getElementById("selectedCostsDiv");
+
+// Values determined by Sky Mavis
+const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600]; 
 const axsBreedCost = 0.5
 
-
 let pricesMap = new Map(); // stores all the currency information
-const slpCosts = [1800, 2700, 4500, 7200, 11700, 18900, 30600]; // values determined by Sky Mavis
 const supportedCurrencies = ["aud", "bidr", "brl", 'eur',"gbp","rub","try", "uah","usdt"] // currencies supporting eth, slp and axs conversions
 let individualCosts = [0,0,0,0,0,0,0]; // store the individual index+1 breed cost
 let totalCosts = [0,0,0,0,0,0,0]; // store total/cumulative breed costs
